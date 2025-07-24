@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% load json_prettify %}
+{% block title %}<title>History Detail</title>{% endblock %}
+{% block content %}
+<div class="container mt-5" style="max-width: 800px;">
+    <a href="{% url 'history_list' %}" class="btn btn-link mb-3">&larr; Назад к истории</a>
+    <div class="card shadow-sm p-4">
+        <h4 class="mb-3">Детали действия</h4>
+        <div class="mb-2"><b>Действие:</b> {{ history.action }}</div>
+        <div class="mb-2"><b>Дата:</b> {{ history.created_at|date:'d.m.Y H:i' }}</div>
+        <div class="mb-3"><b>Пользователь:</b> {{ history.user.get_full_name|default:history.user.username }}</div>
+        <div class="mb-3"><b>Входные данные:</b>
+            <pre class="bg-light p-2 rounded small">{{ history.details.input|default_if_none:"-"|json_prettify|safe }}</pre>
+        </div>
+        <div class="mb-3"><b>Результат:</b>
+            <pre class="bg-light p-2 rounded small">{{ history.details.result|default_if_none:"-"|json_prettify|safe }}</pre>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,98 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.7.2/css/all.css">
+    
+    <style>
+        body { background: #fff; color: #111; font-family: 'Inter', 'Segoe UI', Arial, sans-serif; transition: background 0.3s, color 0.3s; }
+        .navbar { background: #fff !important; box-shadow: 0 2px 12px rgba(0,0,0,0.04); padding-top: 18px; padding-bottom: 18px; }
+        .navbar-brand { font-weight: 800; font-size: 1.5rem; color: #111 !important; letter-spacing: -1px; }
+        .navbar-nav .nav-link, .btn, .btn:focus { color: #111 !important; font-weight: 600; font-size: 1.08rem; border-radius: 10px; background: none; border: none; box-shadow: none; }
+        .navbar-nav .nav-link:hover, .btn:hover { background: #f3f4f6 !important; color: #111 !important; }
+        .btn-outline-dark { border: 1.5px solid #222 !important; background: none !important; color: #111 !important; }
+        .btn-outline-dark:hover { background: #222 !important; color: #fff !important; }
+        .theme-toggle { border: 1.5px solid #e5e7eb !important; background: none !important; color: #111 !important; border-radius: 10px; }
+        .theme-toggle:hover { background: #f3f4f6 !important; }
+        .logout-form { display: inline; margin: 0; }
+        .navbar-icon-btn { color: #111 !important; font-size: 1.35rem; border: none; background: none; outline: none; box-shadow: none; border-radius: 10px; }
+        .navbar-icon-btn:hover { background: #f3f4f6 !important; }
+        .fw-semibold { font-weight: 700 !important; }
+        @media (max-width: 700px) {
+            .navbar-brand { font-size: 1.1rem; }
+            .navbar { padding-top: 10px; padding-bottom: 10px; }
+        }
+    </style>
+    {% block title %}{% endblock %}
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <span style="font-size:1.7em; margin-right:0.5em;">&#x2714;&#xFE0F;</span> MarkChecker
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item me-2">
+                        <button class="btn theme-toggle" id="themeToggleBtn" title="Сменить тему">
+                            <span id="themeIcon" class="fa-regular fa-moon"></span>
+                        </button>
+                    </li>
+                    <li class="nav-item me-2 d-flex align-items-center">
+                        <span class="fw-semibold" style="font-size:1rem; color:#111;">
+                            {% if user.is_authenticated %}{{ user.get_full_name|default:user.username }}{% else %}User Name{% endif %}
+                        </span>
+                    </li>
+                    <li class="nav-item me-2">
+                        <a class="btn btn-outline-dark" href="/history/">
+                            <i class="fa-solid fa-clock-rotate-left me-1"></i> History
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <form action="{% url 'logout' %}" method="post" class="logout-form d-inline ms-2">
+                            {% csrf_token %}
+                            <button type="submit" class="btn navbar-icon-btn" title="Chiqish">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div style="min-height: 80vh;">
+        {% block content %}{% endblock %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Theme toggle logic
+        const themeBtn = document.getElementById('themeToggleBtn');
+        const themeIcon = document.getElementById('themeIcon');
+        function setTheme(dark) {
+            if (dark) {
+                document.body.style.background = '#111';
+                document.body.style.color = '#fff';
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                document.body.style.background = '#fff';
+                document.body.style.color = '#111';
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        }
+        let dark = false;
+        themeBtn.onclick = function() {
+            dark = !dark;
+            setTheme(dark);
+        };
+    </script>
+</body>
+</html>
