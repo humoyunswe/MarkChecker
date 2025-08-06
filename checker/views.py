@@ -1,5 +1,5 @@
 import json
-from .forms import ProductListForm
+from .forms import ProductListForm, MarkCodesForm, AggregateCodesForm
 from django import forms
 from django.views import View
 from django.http import HttpResponse
@@ -110,3 +110,278 @@ class HistoryDetailView(LoginRequiredMixin, DetailView):
     model = History
     template_name = 'checker/history_detail.html'
     context_object_name = 'history'
+
+@method_decorator(login_required, name='dispatch')
+class MarkLimitView(View):
+    template_name = 'checker/mark_limit.html'
+
+    def get_token(self):
+        """Получение токена для API"""
+        url = "https://api.edo.markirovka.kz/apiUot/api/v1/private/get-token"
+        data = {
+            "username": "arailym.sharipova@digitaleconomy.kz",
+            "password": "Qwerty123"
+        }
+        
+        try:
+            response = requests.post(url, data=data, timeout=10)
+            if response.status_code == 200:
+                token = response.json().get("access_token")
+                if token:
+                    return token
+                else:
+                    return None
+            else:
+                return None
+        except Exception:
+            return None
+
+    def fetch_km_info(self, token, bin_code, codes):
+        """Запрос информации о марках"""
+        url = "https://api.edo.markirovka.kz/apiUot/api/v1/private/info-km"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "bin": bin_code,
+            "codes": codes
+        }
+        
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=10)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return None
+        except Exception:
+            return None
+
+    def get(self, request):
+        form = MarkCodesForm()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = MarkCodesForm(request.POST)
+        result = None
+        error = None
+        sql_queries = []
+        api_response = None
+        
+        if form.is_valid():
+            mark_codes_json = form.cleaned_data['mark_codes']
+            bin_code = form.cleaned_data['bin']
+            
+            try:
+                mark_codes = json.loads(mark_codes_json)
+                
+                if not isinstance(mark_codes, list):
+                    error = 'Ошибка: Введите список марок в формате JSON-массива'
+                    return render(request, self.template_name, {'form': form, 'result': result, 'error': error})
+                
+                # Получаем токен и информацию о марках
+                token = self.get_token()
+                if token:
+                    api_response = self.fetch_km_info(token, bin_code, mark_codes)
+                
+                # Обработка каждой марки для SQL
+                skipped_codes = 0
+                for code in mark_codes:
+                    if not isinstance(code, str):
+                        skipped_codes += 1
+                        continue
+                        
+                    if len(code) < 16:
+                        skipped_codes += 1
+                        continue
+
+                    # Проверка, что код начинается с "00" (марки)
+                    if not code.startswith("00"):
+                        skipped_codes += 1
+                        continue
+
+                    # Извлечение GTIN (с 3 по 14 символ, индекс 2 до 15)
+                    gtin = code[2:16]
+
+                    # Формирование SQL-запроса
+                    update_query = (
+                        f"UPDATE docflow_go.marks_go SET temp_doc_id = 0 "
+                        f"WHERE id = '{code}' and gtin = '{gtin}' "
+                        f'AND "Type"=1 AND prod_group = \'pharma\';\n'
+                    )
+                    sql_queries.append(update_query)
+                
+                # Объединяем все запросы
+                full_sql = ''.join(sql_queries)
+                
+                result = {
+                    'total_codes': len(mark_codes),
+                    'processed_codes': len(sql_queries),
+                    'skipped_codes': skipped_codes,
+                    'sql_content': full_sql,
+                    'api_response': api_response,
+                    'api_response_json': json.dumps(api_response, ensure_ascii=False, indent=2) if api_response else None
+                }
+                
+                # Сохраняем историю
+                History.objects.create(
+                    user=request.user,
+                    action='process_mark_codes',
+                    details={
+                        'input': {
+                            'mark_codes': mark_codes,
+                            'bin': bin_code,
+                        },
+                        'result': {
+                            'total_codes': len(mark_codes),
+                            'processed_codes': len(sql_queries),
+                            'api_response': api_response,
+                        }
+                    }
+                )
+                
+            except json.JSONDecodeError:
+                error = 'Ошибка: Неверный формат JSON'
+            except Exception as e:
+                error = f'Ошибка: {str(e)}'
+        else:
+            error = 'Ошибка валидации формы'
+            
+        return render(request, self.template_name, {'form': form, 'result': result, 'error': error})
+
+@method_decorator(login_required, name='dispatch')
+class AggregateLimitView(View):
+    template_name = 'checker/aggregate_limit.html'
+
+    def get_token(self):
+        """Получение токена для API"""
+        url = "https://api.edo.markirovka.kz/apiUot/api/v1/private/get-token"
+        data = {
+            "username": "arailym.sharipova@digitaleconomy.kz",
+            "password": "Qwerty123"
+        }
+        
+        try:
+            response = requests.post(url, data=data, timeout=10)
+            if response.status_code == 200:
+                token = response.json().get("access_token")
+                if token:
+                    return token
+                else:
+                    return None
+            else:
+                return None
+        except Exception:
+            return None
+
+    def fetch_km_info(self, token, bin_code, codes):
+        """Запрос информации о марках"""
+        url = "https://api.edo.markirovka.kz/apiUot/api/v1/private/info-km"
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "bin": bin_code,
+            "codes": codes
+        }
+        
+        try:
+            response = requests.post(url, headers=headers, json=payload, timeout=10)
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return None
+        except Exception:
+            return None
+
+    def get(self, request):
+        form = AggregateCodesForm()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = AggregateCodesForm(request.POST)
+        result = None
+        error = None
+        sql_queries = []
+        api_response = None
+        
+        if form.is_valid():
+            aggregate_codes_json = form.cleaned_data['aggregate_codes']
+            bin_code = form.cleaned_data['bin']
+            
+            try:
+                aggregate_codes = json.loads(aggregate_codes_json)
+                
+                if not isinstance(aggregate_codes, list):
+                    error = 'Ошибка: Введите список кодов агрегатов в формате JSON-массива'
+                    return render(request, self.template_name, {'form': form, 'result': result, 'error': error})
+                
+                # Получаем токен и информацию о марках
+                token = self.get_token()
+                if token:
+                    api_response = self.fetch_km_info(token, bin_code, aggregate_codes)
+                
+                # Обработка каждой марки для SQL
+                skipped_codes = 0
+                for code in aggregate_codes:
+                    if not isinstance(code, str):
+                        skipped_codes += 1
+                        continue
+                        
+                    if len(code) < 16:
+                        skipped_codes += 1
+                        continue
+
+                    # Проверка, что код начинается с "01" (агрегаты)
+                    if not code.startswith("01"):
+                        skipped_codes += 1
+                        continue
+
+                    # Извлечение GTIN (с 3 по 14 символ, индекс 2 до 15)
+                    gtin = code[2:16]
+
+                    # Формирование SQL-запроса для агрегатов (Type=2)
+                    update_query = (
+                        f"UPDATE docflow_go.marks_go SET temp_doc_id = 0 "
+                        f"WHERE id = '{code}' AND gtin = '{gtin}' AND \"Type\"=2 AND prod_group = 'pharma';\n"
+                    )
+                    sql_queries.append(update_query)
+                
+                # Объединяем все запросы
+                full_sql = ''.join(sql_queries)
+                
+                result = {
+                    'total_codes': len(aggregate_codes),
+                    'processed_codes': len(sql_queries),
+                    'skipped_codes': skipped_codes,
+                    'sql_content': full_sql,
+                    'api_response': api_response,
+                    'api_response_json': json.dumps(api_response, ensure_ascii=False, indent=2) if api_response else None
+                }
+                
+                # Сохраняем историю
+                History.objects.create(
+                    user=request.user,
+                    action='process_aggregate_codes',
+                    details={
+                        'input': {
+                            'aggregate_codes': aggregate_codes,
+                            'bin': bin_code,
+                        },
+                        'result': {
+                            'total_codes': len(aggregate_codes),
+                            'processed_codes': len(sql_queries),
+                            'api_response': api_response,
+                        }
+                    }
+                )
+                
+            except json.JSONDecodeError:
+                error = 'Ошибка: Неверный формат JSON'
+            except Exception as e:
+                error = f'Ошибка: {str(e)}'
+        else:
+            error = 'Ошибка валидации формы'
+            
+        return render(request, self.template_name, {'form': form, 'result': result, 'error': error})

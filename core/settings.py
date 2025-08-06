@@ -24,7 +24,7 @@ TEMPLATES_DIR = BASE_DIR / 'templates'
 SECRET_KEY = 'django-insecure-anb@k#a(*fnb8f#su+#4&xa4j-r1gakboqvdab#k%zs$gjg9%*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 CSRF_TRUSTED_ORIGINS = [
     'http://159.65.115.108',
