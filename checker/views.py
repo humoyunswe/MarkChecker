@@ -195,8 +195,8 @@ class MarkLimitView(View):
                         skipped_codes += 1
                         continue
 
-                    # Проверка, что код начинается с "00" (марки)
-                    if not code.startswith("00"):
+                    # Проверка, что код начинается с "01" (марки)
+                    if not code.startswith("01"):
                         skipped_codes += 1
                         continue
 
@@ -333,18 +333,15 @@ class AggregateLimitView(View):
                         skipped_codes += 1
                         continue
 
-                    # Проверка, что код начинается с "01" (агрегаты)
-                    if not code.startswith("01"):
+                    # Проверка, что код начинается с "00" (агрегаты)
+                    if not code.startswith("00"):
                         skipped_codes += 1
                         continue
-
-                    # Извлечение GTIN (с 3 по 14 символ, индекс 2 до 15)
-                    gtin = code[2:16]
 
                     # Формирование SQL-запроса для агрегатов (Type=2)
                     update_query = (
                         f"UPDATE docflow_go.marks_go SET temp_doc_id = 0 "
-                        f"WHERE id = '{code}' AND gtin = '{gtin}' AND \"Type\"=2 AND prod_group = 'pharma';\n"
+                        f"WHERE id = '{code}' AND gtin = '' AND \"Type\"=2 AND prod_group = 'pharma';\n"
                     )
                     sql_queries.append(update_query)
                 

@@ -14,19 +14,20 @@ class MarkCodesForm(forms.Form):
         label='Список марок',
         widget=forms.Textarea(attrs={
             'class': 'form-control', 
-            'placeholder': '["00348700051500007798", "00348700051500007866"]', 
+            'placeholder': '["0104870050000413215915270434233", "0104870050003896217317113859047"]', 
             'rows': 8
         }),
-        help_text='Вставьте JSON-массив с кодами марок для обработки. Коды должны начинаться с "00".'
+        help_text='Вставьте JSON-массив с кодами марок для обработки. Коды должны начинаться с "01".'
     )
     bin = forms.CharField(
         label='БИН',
         max_length=12,
+        required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control', 
             'placeholder': '850702450693'
         }),
-        help_text='Введите БИН для запроса информации о марках.'
+        help_text='Введите БИН для запроса информации о марках (необязательно).'
     )
 
 class AggregateCodesForm(forms.Form):
@@ -34,17 +35,18 @@ class AggregateCodesForm(forms.Form):
         label='Список кодов агрегатов',
         widget=forms.Textarea(attrs={
             'class': 'form-control', 
-            'placeholder': '["0104870050000413215915270434233", "0104870050003896217317113859047"]', 
+            'placeholder': '["00348700051500007798", "00348700051500007866"]', 
             'rows': 8
         }),
-        help_text='Вставьте JSON-массив с кодами агрегатов для обработки. Коды должны начинаться с "01".'
+        help_text='Вставьте JSON-массив с кодами агрегатов для обработки. Коды должны начинаться с "00".'
     )
     bin = forms.CharField(
         label='БИН',
         max_length=12,
+        required=False,
         widget=forms.TextInput(attrs={
             'class': 'form-control', 
             'placeholder': '850702450693'
         }),
-        help_text='Введите БИН для запроса информации о марках.'
+        help_text='Введите БИН для запроса информации о марках (необязательно).'
     ) 
