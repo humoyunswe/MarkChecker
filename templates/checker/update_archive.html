@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}<title>Ограничение Марка</title>{% endblock %}
+{% block title %}<title>Обновить Архив</title>{% endblock %}
 {% load static %}
 {% block content %}
 <style>
@@ -37,10 +37,10 @@
                 <a class="nav-link" href="{% url 'mark_checker' %}">Проверить на дубликаты</a>
             </li>
             <li class="nav-item" role="presentation">
-                <a class="nav-link active" href="{% url 'mark_limit' %}">Ограничение Марка</a>
+                <a class="nav-link" href="{% url 'mark_limit' %}">Ограничение Марка</a>
             </li>
             <li class="nav-item" role="presentation">
-                <a class="nav-link" href="{% url 'update_archive' %}">Обновить Архив</a>
+                <a class="nav-link active" href="{% url 'update_archive' %}">Обновить Архив</a>
             </li>
             <li class="nav-item" role="presentation">
                 <a class="nav-link" href="{% url 'delete_mark' %}">Удалить Марка</a>
@@ -53,7 +53,7 @@
 </div>
 
 <div class="mc-main">
-    <div class="mc-title">Ограничение Марка</div>
+    <div class="mc-title">Обновить Архив</div>
 
     <form method="post" novalidate autocomplete="off">
         {% csrf_token %}
@@ -69,7 +69,7 @@
             <div class="form-text">{{ form.bin.help_text }}</div>
             {% for error in form.bin.errors %}<div class="error">{{ error }}</div>{% endfor %}
         </div>
-        <button type="submit" class="btn btn-outline-dark w-100">Обработать марки</button>
+        <button type="submit" class="btn btn-outline-dark w-100">Обновить архив</button>
     </form>
     
     {% if result %}
@@ -99,7 +99,7 @@
                 <div class="mb-2" style="font-weight:600;">Сгенерированные SQL-запросы:</div>
                 <div class="mb-3" style="font-size: 0.95rem; color: #666;">
                     <strong>Включает:</strong><br>
-                    • Обновить основную таблицу (marks_go) - установить temp_doc_id = 0
+                    • Обновить архив (marks_go_arch) - установить origin_category = 'СТАЦИОНАР'
                 </div>
                 <pre id="sql-result">{{ result.sql_content }}</pre>
                 <button class="btn btn-dark btn-sm w-100 mt-2" onclick="downloadSQL()">Скачать mptNum.sql</button>
@@ -130,4 +130,4 @@
         <div class="result-box error mt-4">{{ error }}</div>
     {% endif %}
 </div>
-{% endblock %} 
+{% endblock %}
