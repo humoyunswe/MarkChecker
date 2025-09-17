@@ -102,7 +102,7 @@
                     • Обновить агрегат (marks_go) - установить temp_doc_id = 0
                 </div>
                 <pre id="sql-result">{{ result.sql_content }}</pre>
-                <button class="btn btn-dark btn-sm w-100 mt-2" onclick="downloadSQL()">Скачать mptNum.sql</button>
+                <button class="btn btn-dark btn-sm w-100 mt-2" onclick="downloadSQL()">Скачать mptNum.cql</button>
             </div>
             <script>
             function copyApiResult() {
@@ -118,7 +118,7 @@
                 const blob = new Blob([sql], {type: 'text/sql'});
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = 'mptNum.sql';
+                link.download = 'mptNum.cql';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
