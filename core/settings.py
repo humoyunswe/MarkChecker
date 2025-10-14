@@ -30,7 +30,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://159.65.115.108',
 ]
 
-ALLOWED_HOSTS = ['*','159.65.115.108']
+ALLOWED_HOSTS = ['*','159.65.115.108', 'vercel.app']
 
 
 # Application definition
@@ -74,7 +74,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'core.wsgi.application'
+WSGI_APPLICATION = 'core.wsgi.app'
 
 
 # Database
