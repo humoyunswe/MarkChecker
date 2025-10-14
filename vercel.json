@@ -11,7 +11,7 @@
     "routes": [
       {
         "src": "/(.*)",
-        "dest": "code/wsgi.py"
+        "dest": "core/wsgi.py"
       }
     ]
   }

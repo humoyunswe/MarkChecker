@@ -82,10 +82,18 @@ WSGI_APPLICATION = 'core.wsgi.app'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'neondb',  # из конца URL
+        'USER': 'neondb_owner',  # имя пользователя
+        'PASSWORD': 'npg_I1TYaA4tRecy',  # пароль
+        'HOST': 'ep-shy-mouse-addgtbfz-pooler.c-2.us-east-1.aws.neon.tech',  # хост
+        'PORT': '5432',  # порт
+        'OPTIONS': {
+            'sslmode': 'require',  # для Neon обязательно
+        },
     }
 }
+
 
 
 # Password validation
