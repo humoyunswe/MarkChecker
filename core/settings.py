@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +22,7 @@ TEMPLATES_DIR = BASE_DIR / 'templates'
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-anb@k#a(*fnb8f#su+#4&xa4j-r1gakboqvdab#k%zs$gjg9%*'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-anb@k#a(*fnb8f#su+#4&xa4j-r1gakboqvdab#k%zs$gjg9%*')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -93,6 +94,11 @@ DATABASES = {
         },
     }
 }
+
+# Для Vercel - используем DATABASE_URL если доступен
+if 'DATABASE_URL' in os.environ:
+    import dj_database_url
+    DATABASES['default'] = dj_database_url.parse(os.environ['DATABASE_URL'])
 
 
 
