@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}<title>Смена Статус Код</title>{% endblock %}
+{% load static %}
+{% block content %}
+<style>
+    body { min-height: 100vh; background: #fff; }
+    .top-nav { background: #fff; border-bottom: 2px solid #e5e7eb; padding: 20px 0; margin-bottom: 40px; }
+    .nav-container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+    .nav-tabs { border: none; justify-content: center; }
+    .nav-tabs .nav-link { border: none; color: #6b7280; font-weight: 600; padding: 16px 32px; margin-right: 12px; border-radius: 12px; transition: all 0.3s ease; }
+    .nav-tabs .nav-link.active { background: #111; color: #fff; }
+    .nav-tabs .nav-link:hover { background: #f3f4f6; color: #111; }
+    .mc-main { max-width: 600px; margin: 0 auto; background: #fff; border-radius: 24px; box-shadow: 0 6px 32px rgba(0,0,0,0.10); padding: 48px 36px 36px 36px; }
+    .mc-title { font-weight: 800; font-size: 2.6rem; letter-spacing: -1px; margin-bottom: 32px; text-align: center; color: #111; }
+    .form-label { font-weight: 600; color: #222; font-size: 1.15rem; }
+    .form-control, textarea { border-radius: 14px; border: 1.5px solid #e5e7eb; font-size: 1.15rem; padding: 0.8em 1em; }
+    .form-control:focus, textarea:focus { border-color: #222; box-shadow: 0 0 0 2px #2222; }
+    .btn-primary { border-radius: 14px; font-weight: 700; background: #111; border: none; font-size: 1.2rem; padding: 0.7em 0; transition: background 0.2s; }
+    .btn-primary:hover { background: #333; }
+    .result-box { background: #fafbfc; border-radius: 20px; padding: 32px; margin-top: 36px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); font-size: 1.18rem; color: #111; }
+    .error { color: #d32f2f; font-weight: 600; }
+    .info { color: #1976d2; font-weight: 600; }
+    .sql-output { background: #1e1e1e; color: #d4d4d4; border-radius: 12px; padding: 20px; max-height: 400px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.95rem; margin-top: 20px; white-space: pre-wrap; word-break: break-all; }
+    .action-buttons { display: flex; gap: 12px; margin-top: 20px; }
+    .btn-secondary { border-radius: 10px; font-weight: 600; background: #6b7280; border: none; padding: 10px 20px; color: #fff; cursor: pointer; }
+    .btn-secondary:hover { background: #4b5563; }
+    @media (max-width: 700px) {
+        .nav-container { padding: 0 10px; }
+        .nav-tabs .nav-link { padding: 12px 20px; font-size: 0.9rem; margin-right: 8px; }
+        .mc-main { padding: 18px 2vw 14px 2vw; max-width: 99vw; }
+        .mc-title { font-size: 1.5rem; }
+        .result-box { padding: 14px; font-size: 1rem; }
+    }
+</style>
+
+<!-- Навигация на верху -->
+<div class="top-nav">
+    <div class="nav-container">
+        <ul class="nav nav-tabs" id="checkerTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" href="{% url 'mark_checker' %}">Проверить на дубликаты</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" href="{% url 'mark_limit' %}">Ограничение Марка</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" href="{% url 'update_archive' %}">Обновить Архив</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" href="{% url 'delete_mark' %}">Удалить Марка</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link" href="{% url 'aggregate_limit' %}">Ограничение Агрегат</a>
+            </li>
+            <li class="nav-item" role="presentation">
+                <a class="nav-link active" href="{% url 'status_change' %}">Смена Статус Код</a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="mc-main">
+    <h1 class="mc-title">Смена Статус Код</h1>
+    <form method="post" id="statusChangeForm">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="{{ form.id_list.id_for_label }}" class="form-label">{{ form.id_list.label }}</label>
+            {{ form.id_list }}
+            {% if form.id_list.help_text %}
+                <div class="form-text">{{ form.id_list.help_text }}</div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.type_value.id_for_label }}" class="form-label">{{ form.type_value.label }}</label>
+            {{ form.type_value }}
+            {% if form.type_value.help_text %}
+                <div class="form-text">{{ form.type_value.help_text }}</div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.prod_group.id_for_label }}" class="form-label">{{ form.prod_group.label }}</label>
+            {{ form.prod_group }}
+            {% if form.prod_group.help_text %}
+                <div class="form-text">{{ form.prod_group.help_text }}</div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Генерировать CQL</button>
+    </form>
+
+    {% if error %}
+        <div class="result-box">
+            <p class="error">{{ error }}</p>
+        </div>
+    {% endif %}
+
+    {% if result %}
+        <div class="result-box">
+            <p class="info">✅ Всего ID кодов: <strong>{{ result.total_codes }}</strong></p>
+            <p class="info">✅ Обработано: <strong>{{ result.processed_codes }}</strong></p>
+            {% if result.skipped_codes > 0 %}
+                <p class="error">⚠️ Пропущено: <strong>{{ result.skipped_codes }}</strong></p>
+            {% endif %}
+            <p class="info">Type: <strong>{{ result.type_value }}</strong></p>
+            <p class="info">Product Group: <strong>{{ result.prod_group }}</strong></p>
+            
+            <div class="sql-output" id="sqlOutput">{{ result.sql_content }}</div>
+            
+            <div class="action-buttons">
+                <button onclick="copySql()" class="btn btn-secondary">📋 Копировать CQL</button>
+                <button onclick="downloadSql()" class="btn btn-secondary">💾 Скачать CQL файл</button>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    function copySql() {
+        const sqlText = document.getElementById('sqlOutput').innerText;
+        navigator.clipboard.writeText(sqlText).then(() => {
+            alert('CQL скопирован в буфер обмена!');
+        }).catch(err => {
+            console.error('Ошибка при копировании: ', err);
+        });
+    }
+
+    function downloadSql() {
+        const sqlText = document.getElementById('sqlOutput').innerText;
+        const blob = new Blob([sqlText], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'status_change_' + new Date().toISOString().slice(0,10) + '.cql';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    }
+</script>
+
+{% endblock %}

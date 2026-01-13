@@ -49,4 +49,35 @@ class AggregateCodesForm(forms.Form):
             'placeholder': '850702450693'
         }),
         help_text='Введите БИН для запроса информации о марках (необязательно).'
+    )
+
+class StatusChangeForm(forms.Form):
+    id_list = forms.CharField(
+        label='Список ID',
+        widget=forms.Textarea(attrs={
+            'class': 'form-control', 
+            'placeholder': '["00046079560700001564", "00046079560700001687", "00046079560700001816"]', 
+            'rows': 8
+        }),
+        help_text='Вставьте JSON-массив с ID кодов для изменения статуса.'
+    )
+    type_value = forms.IntegerField(
+        label='Type',
+        initial=2,
+        required=False,
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control', 
+            'placeholder': '2'
+        }),
+        help_text='Значение для поля Type (по умолчанию: 2)'
+    )
+    prod_group = forms.CharField(
+        label='Product Group',
+        initial='pharma',
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control', 
+            'placeholder': 'pharma'
+        }),
+        help_text='Значение для поля prod_group (по умолчанию: pharma)'
     ) 

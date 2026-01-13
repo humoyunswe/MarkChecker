@@ -1,5 +1,5 @@
 import json
-from .forms import ProductListForm, MarkCodesForm, AggregateCodesForm
+from .forms import ProductListForm, MarkCodesForm, AggregateCodesForm, StatusChangeForm
 from django import forms
 from django.views import View
 from django.http import HttpResponse
@@ -642,6 +642,96 @@ class AggregateLimitView(View):
                             'total_codes': len(aggregate_codes),
                             'processed_codes': len(sql_queries),
                             'api_response': api_response,
+                        }
+                    }
+                )
+                
+            except json.JSONDecodeError:
+                error = 'Ошибка: Неверный формат JSON'
+            except Exception as e:
+                error = f'Ошибка: {str(e)}'
+        else:
+            error = 'Ошибка валидации формы'
+            
+        return render(request, self.template_name, {'form': form, 'result': result, 'error': error})
+
+
+@method_decorator(login_required, name='dispatch')
+class StatusChangeView(View):
+    template_name = 'checker/status_change.html'
+
+    def get(self, request):
+        form = StatusChangeForm()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = StatusChangeForm(request.POST)
+        result = None
+        error = None
+
+        if form.is_valid():
+            id_list_json = form.cleaned_data['id_list']
+            type_value = form.cleaned_data.get('type_value') or 2
+            prod_group = form.cleaned_data.get('prod_group') or 'pharma'
+            
+            try:
+                id_list = json.loads(id_list_json)
+                
+                if not isinstance(id_list, list):
+                    error = 'Ошибка: ID список должен быть массивом JSON'
+                    return render(request, self.template_name, {'form': form, 'error': error})
+
+                sql_queries = []
+                processed_count = 0
+                skipped_count = 0
+                
+                for id_code in id_list:
+                    if not isinstance(id_code, str):
+                        skipped_count += 1
+                        continue
+                        
+                    if len(id_code) < 16:
+                        skipped_count += 1
+                        continue
+
+                    # Извлекаем GTIN из ID (символы с 2 по 16, всего 14 символов)
+                    gtin = id_code[2:16]
+                    
+                    # Формирование SQL-запроса для смены статуса
+                    update_query = (
+                        f"UPDATE docflow_go.marks_go SET in_circulation = false "
+                        f"WHERE id = '{id_code}' AND \"Type\" = {type_value} "
+                        f"AND gtin = '{gtin}' AND prod_group = '{prod_group}';\n"
+                    )
+                    sql_queries.append(update_query)
+                    processed_count += 1
+                
+                # Объединяем все запросы
+                full_sql = ''.join(sql_queries)
+                
+                result = {
+                    'total_codes': len(id_list),
+                    'processed_codes': processed_count,
+                    'skipped_codes': skipped_count,
+                    'sql_content': full_sql,
+                    'type_value': type_value,
+                    'prod_group': prod_group
+                }
+                
+                # Сохраняем историю
+                History.objects.create(
+                    user=request.user,
+                    action='status_change',
+                    details={
+                        'input': {
+                            'id_list': id_list,
+                            'type_value': type_value,
+                            'prod_group': prod_group,
+                        },
+                        'result': {
+                            'total_codes': len(id_list),
+                            'processed_codes': processed_count,
+                            'skipped_codes': skipped_count,
                         }
                     }
                 )
