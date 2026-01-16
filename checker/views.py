@@ -695,13 +695,13 @@ class StatusChangeView(View):
                         continue
 
                     # Извлекаем GTIN из ID (символы с 2 по 16, всего 14 символов)
-                    gtin = id_code[2:16]
+                
                     
                     # Формирование SQL-запроса для смены статуса
                     update_query = (
                         f"UPDATE docflow_go.marks_go SET in_circulation = false "
                         f"WHERE id = '{id_code}' AND \"Type\" = {type_value} "
-                        f"AND gtin = '{gtin}' AND prod_group = '{prod_group}';\n"
+                        f"AND gtin = ' ' AND prod_group = '{prod_group}';\n"
                     )
                     sql_queries.append(update_query)
                     processed_count += 1
